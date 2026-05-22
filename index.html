@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSE 英文朗讀特訓室</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #1a73e8;
+      --primary-hover: #1557b0;
+      --success-color: #34a853;
+      --error-color: #ea4335;
+      --warning-color: #fbbc05;
+      --text-main: #202124;
+      --text-sub: #5f6368;
+      --bg-gray: #f8f9fa;
+      --border-color: #dadce0;
+    }
+
+    * { box-sizing: border-box; font-family: 'Roboto', 'Noto Sans TC', sans-serif; }
+    body { background-color: var(--bg-gray); color: var(--text-main); margin: 0; padding: 20px; line-height: 1.6; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    /* 橫幅黑板 */
+    .hero-banner {
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      color: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .hero-banner h1 { margin: 0; font-size: 2rem; font-weight: 700; letter-spacing: 1px; }
+    .hero-banner p { margin: 8px 0 0 0; opacity: 0.9; font-size: 1rem; }
+    .user-info { font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; display: inline-block; margin-top: 10px; }
+
+    /* 主要版面配置 */
+    .main-grid { display: block; }
+    .card { background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card-title { font-size: 1.25rem; font-weight: 500; margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: #111; border-bottom: 1px solid var(--bg-gray); padding-bottom: 12px; }
+    
+    /* 文章選擇與內容 */
+    .article-selector { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; margin-bottom: 16px; background-color: white; }
+    .article-text { background: #fdfaf2; border-left: 5px solid var(--warning-color); padding: 20px; border-radius: 4px; font-size: 1.15rem; letter-spacing: 0.5px; line-height: 1.8; margin-bottom: 20px; color: #2c3e50; white-space: pre-line; }
+
+    /* 控制按鈕區 */
+    .control-panel { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 0.95rem; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-primary { background-color: var(--primary-color); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-danger { background-color: var(--error-color); color: white; }
+    .btn-danger:hover { background-color: #c53929; }
+    .btn-success { background-color: var(--success-color); color: white; }
+    .btn-success:hover { background-color: #2d8b47; }
+    .btn-outline { background-color: white; color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-outline:hover { background-color: var(--bg-gray); }
+    .btn:disabled { background-color: #e0e0e0; color: #a0a0a0; cursor: not-allowed; }
+
+    /* 狀態提示 */
+    .status-badge { font-size: 0.9rem; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+    .status-recording { background-color: #fce8e6; color: var(--error-color); animation: pulse 1.5s infinite; }
+    .timer { font-weight: bold; font-family: monospace; font-size: 1.1rem; color: var(--error-color); }
+
+    /* AI 評分結果區 */
+    .score-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .score-box { background: var(--bg-gray); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid var(--border-color); }
+    .score-box.total { background: #e8f0fe; border-color: #aecbfa; }
+    .score-num { font-size: 2rem; font-weight: bold; color: var(--primary-color); margin: 4px 0; }
+    .score-box.total .score-num { color: #1557b0; font-size: 2.5rem; }
+    
+    .analysis-box { background: #f3f8f5; border: 1px solid #ceead6; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+    .badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .badge-error { background: #fce8e6; color: var(--error-color); padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+    .badge-miss { background: #feefe3; color: #e67c73; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+    
+    /* 頁籤導覽 (排行榜與歷史) */
+    .tabs { display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 16px; }
+    .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; color: var(--text-sub); }
+    .tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* 表格設計 */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.95rem; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+    th { background-color: var(--bg-gray); font-weight: 500; color: var(--text-sub); }
+    tr:hover { background-color: rgba(0,0,0,0.01); }
+
+    /* 載入中動畫遮罩 */
+    .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+    .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    .loading-text { margin-top: 16px; font-weight: 500; color: var(--primary-color); }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    
+    @media (min-width: 768px) {
+      .main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loadingText" class="loading-text">系統讀取中，請稍候...</div>
+  </div>
+
+  <div class="container">
+    <div class="hero-banner">
+      <h1>DSE 英文朗讀特訓室</h1>
+      <p>專屬香港 DSE Paper 4 口語特訓 • AI 即時精準評分系統</p>
+      <div id="userEmail" class="user-info"><span class="material-icons" style="font-size:14px; vertical-align:middle;">account_circle</span> 載入中...</div>
+    </div>
+
+    <div class="main-grid">
+      <div class="left-column">
+        <div class="card">
+          <h2 class="card-title"><span class="material-icons">menu_book</span> 選擇特訓文章</h2>
+          <select id="articleSelect" class="article-selector" onchange="switchArticle()">
+            </select>
+          <div id="articleBody" class="article-text">正在加載特訓教材內容...</div>
+          
+          <div class="control-panel">
+            <button id="startBtn" class="btn btn-primary" onclick="startRecording()">
+              <span class="material-icons">mic</span> 開始錄音
+            </button>
+            <button id="stopBtn" class="btn btn-danger" onclick="stopRecording()" disabled>
+              <span class="material-icons">stop</span> 結束並評分
+            </button>
+            <button id="demoBtn" class="btn btn-outline" onclick="playDemoAudio()">
+              <span class="material-icons">volume_up</span> 聆聽示範語音 (AI)
+            </button>
+            <div id="recordingStatus" style="display: none;">
+              <span class="status-badge status-recording">
+                <span class="material-icons" style="font-size:16px;">fiber_manual_record</span> 錄音中
+              </span>
+              <span id="timer" class="timer">00:00</span>
+            </div>
+          </div>
+          <audio id="audioPlayback" controls style="width: 100%; display: none; margin-top: 10px;"></audio>
+        </div>
+
+        <div id="feedbackCard" class="card" style="display: none;">
+          <h2 class="card-title" style="color: var(--primary-color); border-bottom-color: #aecbfa;">
+            <span class="material-icons">analytics</span> AI 考官即時評估報告
+          </h2>
+          
+          <div class="score-container">
+            <div class="score-box total">
+              <div>總體表現</div>
+              <div id="scoreOverall" class="score-num">0</div>
+              <small>滿分 100</small>
+            </div>
+            <div class="score-box">
+              <div>發音咬字 (Pronunciation)</div>
+              <div id="scorePron" class="score-num">0</div>
+            </div>
+            <div class="score-box">
+              <div>語調情感 (Intonation)</div>
+              <div id="scoreInton" class="score-num">0</div>
+            </div>
+            <div class="score-box">
+              <div>流暢連音 (Fluency)</div>
+              <div id="scoreFluency" class="score-num">0</div>
+            </div>
+          </div>
+
+          <div class="analysis-box">
+            <strong style="color:#137333; display:block; margin-bottom:6px;">考官精準評語：</strong>
+            <p id="detailedAnalysis" style="margin:0; font-size:0.95rem; color:#202124;"></p>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <strong style="display:block; margin-bottom:6px;">單字揪錯診斷：</strong>
+            <div class="badge-list" id="errorWordsList"></div>
+            <div class="badge-list" id="missedWordsList"></div>
+          </div>
+
+          <div>
+            <strong style="display:block; margin-bottom:6px;">考官優化建議 (Actionable Advice)：</strong>
+            <ol id="adviceList" style="margin:0; padding-left:20px; font-size:0.95rem; color:var(--text-sub);"></ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="card">
+          <div class="tabs">
+            <div id="tabLeader" class="tab active" onclick="switchTab('leader')">全校前 10 排行榜</div>
+            <div id="tabHistory" class="tab" onclick="switchTab('history')">我的特訓紀錄</div>
+          </div>
+
+          <div id="contentLeader" class="tab-content active">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 50px;">排名</th>
+                  <th>學生</th>
+                  <th>特訓文章</th>
+                  <th style="text-align: right;">總分</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardBody">
+                <tr><td colspan="4" style="text-align:center; color:var(--text-sub);">讀取數據中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="contentHistory" class="tab-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>時間</th>
+                  <th>特訓文章</th>
+                  <th style="text-align: right;">分數</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr><td colspan="3" style="text-align:center; color:var(--text-sub);">讀取數據中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 重大設定：請貼上您部署後的 GAS 網路應用程式 URL
+    // ==========================================
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyaAznoBjgnkTLOlV64otk1OWWmDBTphzA5uUuJjtzsdd314n0XdZ09EbLewlRE_F_Dhg/exec"; 
+
+    // 本地內建的 DSE 模擬教材庫 (可根據需求自由調整或新增)
+    const ARTICLES = [
+      { id: "dse_01", title: "Part A: Text 1 - Climate Change", content: "Good morning everyone. Today, I want to talk about climate change and its severe impact on our environment.\nRising global temperatures have caused polar ice caps to melt at an unprecedented rate, leading to dangerous sea-level rises around the world.\nIf we do not take immediate and collective action to reduce carbon emissions, many coastal cities will face devastating floods within the next few decades.\nThank you for your attention." },
+      { id: "dse_02", title: "Part A: Text 2 - Artificial Intelligence", content: "Artificial Intelligence is rapidly reshaping the global job market and our daily routines.\nWhile AI automation brings immense efficiency and creates new technical industries, it also poses significant threats to traditional employment.\nExperts suggest that future education systems must emphasize critical thinking and adaptability over memorization.\nThis shift will prepare the younger generation to work alongside intelligent machines successfully." },
+      { id: "dse_03", title: "Part A: Text 3 - Healthy Lifestyle", content: "Maintaining a balanced diet and regular exercise is crucial for long-term physical and mental well-being.\nIn our fast-paced modern society, many students regularly consume processed fast food and lack sufficient sleep.\nHealth professionals strongly warn that prolonged tech screen time increases stress levels and reduces focusing capabilities.\nTherefore, cultivating healthy life habits early is the foundation of academic success." }
+    ];
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let timerInterval;
+    let secondsElapsed = 0;
+
+    // 網頁初始化進入點
+    window.addEventListener('DOMContentLoaded', () => {
+      initArticleSelector();
+      fetchInitialData();
+    });
+
+    // 封裝與後端 GAS doPost 溝通的通用 Fetch 模組
+    // 使用 text/plain 以徹底繞過瀏覽器對 GAS 的跨網域 CORS Preflight (OPTIONS) 限制
+    async function callGasApi(action, data = {}) {
+      const payload = { action, ...data };
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: 'POST',
+          mode: 'cors',
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+          return result.data;
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        console.error("API 連線異常:", error);
+        alert("後端系統通訊失敗，請確認 GAS 網址與部署權限設定是否正確。\n錯誤訊息: " + error.message);
+        throw error;
+      }
+    }
+
+    // 初始化教材下拉選單
+    function initArticleSelector() {
+      const select = document.getElementById('articleSelect');
+      select.innerHTML = ARTICLES.map(a => `<option value="${a.id}">${a.title}</option>`).join('');
+      switchArticle();
+    }
+
+    // 切換文章顯示
+    function switchArticle() {
+      const select = document.getElementById('articleSelect');
+      const article = ARTICLES.find(a => a.id === select.value);
+      document.getElementById('articleBody').innerText = article.content;
+      document.getElementById('feedbackCard').style.display = 'none'; // 切換文章時隱藏舊報告
+    }
+
+    // 向後端 API 索取初始排行與個人紀錄
+    async function fetchInitialData() {
+      showLoading("載入全校特訓數據中...");
+      try {
+        const data = await callGasApi('getInitialData');
+        document.getElementById('userEmail').innerHTML = `<span class="material-icons" style="font-size:14px; vertical-align:middle;">account_circle</span> ${data.email}`;
+        renderLeaderboard(data.leaderboard);
+        renderHistory(data.history);
+      } catch (err) {
+        document.getElementById('userEmail').innerText = "未登入/連線失敗";
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==========================================
+    // 核心功能：原生麥克風錄音邏輯 (無安全沙箱阻擋)
+    // ==========================================
+    async function startRecording() {
+      audioChunks = [];
+      try {
+        // 瀏覽器原生向使用者要求麥克風權限 (由獨立網域 GitHub Pages 發出，100% 穩定)
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          
+          // 釋放麥克風設備
+          stream.getTracks().forEach(track => track.stop());
+
+          // 顯示本地播放音檔供學生複習
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const playback = document.getElementById('audioPlayback');
+          playback.src = audioUrl;
+          playback.style.display = 'block';
+
+          // 將音檔 Blob 轉為 Base64 字串，並送至 GAS 進行評分
+          showLoading("AI 考官正在聆聽並生成深度評估報告，請耐心等候約 10-15 秒...");
+          try {
+            const base64Audio = await blobToBase64(audioBlob);
+            const currentArticle = ARTICLES.find(a => a.id === document.getElementById('articleSelect').value);
+            
+            const result = await callGasApi('processAndSaveRecord', {
+              base64Audio: base64Audio,
+              articleContent: currentArticle.content,
+              articleId: currentArticle.id,
+              articleTitle: currentArticle.title
+            });
+
+            // 渲染 AI 評分結果與重新整理排行紀錄
+            renderFeedback(result.feedback);
+            fetchInitialData(); 
+          } catch (err) {
+            alert("AI 分析程序中斷，請重新嘗試錄音。");
+          } finally {
+            hideLoading();
+          }
+        };
+
+        // 開始錄音並啟動計時器
+        mediaRecorder.start();
+        startTimer();
+        
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('recordingStatus').style.display = 'inline-flex';
+      } catch (err) {
+        console.error("麥克風存取失敗:", err);
+        alert("瀏覽器拒絕存取麥克風。請確認已允許本網頁的麥克風權限！");
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        stopTimer();
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('recordingStatus').style.display = 'none';
+      }
+    }
+
+    // 將 Blob 轉成純 Base64 字串的工具函式
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // ==========================================
+    // 呼叫 Gemini AI 生成示範語音並在前端播放
+    // ==========================================
+    async function playDemoAudio() {
+      const currentArticle = ARTICLES.find(a => a.id === document.getElementById('articleSelect').value);
+      showLoading("Gemini AI 考官正在用正宗英式口音為您朗讀示範音檔...");
+      
+      try {
+        const audioData = await callGasApi('generateDemoAudio', {
+          textContent: currentArticle.content
+        });
+
+        // 將後端傳回的 PCM Base64 數據轉回前端音檔並播放
+        const audioUrl = "data:" + audioData.mimeType + ";base64," + audioData.base64PCM;
+        const playback = document.getElementById('audioPlayback');
+        playback.src = audioUrl;
+        playback.style.display = 'block';
+        playback.play();
+      } catch (err) {
+        alert("無法產生示範語音: " + err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // ==========================================
+    // 數據渲染輔助函式區
+    // ==========================================
+    function renderFeedback(fb) {
+      document.getElementById('feedbackCard').style.display = 'block';
+      document.getElementById('scoreOverall').innerText = fb.overallScore;
+      document.getElementById('scorePron').innerText = fb.scores.pronunciation;
+      document.getElementById('scoreInton').innerText = fb.scores.intonation;
+      document.getElementById('scoreFluency').innerText = fb.scores.fluencyAndLinking;
+      document.getElementById('detailedAnalysis').innerText = fb.detailedAnalysis;
+
+      // 發音錯誤診斷
+      const errWordsList = document.getElementById('errorWordsList');
+      if(fb.accuracy.mispronounced && fb.accuracy.mispronounced.length > 0) {
+        errWordsList.innerHTML = `<span style="font-size:0.9rem; color:var(--text-sub);">發音有誤: </span>` + 
+          fb.accuracy.mispronounced.map(w => `<span class="badge-error">${w}</span>`).join('');
+      } else {
+        errWordsList.innerHTML = `<span style="font-size:0.9rem; color:var(--success-color); font-weight:500;">✓ 考官未偵測到明顯發音錯誤</span>`;
+      }
+
+      // 漏唸診斷
+      const missWordsList = document.getElementById('missedWordsList');
+      if(fb.accuracy.missed && fb.accuracy.missed.length > 0) {
+        missWordsList.innerHTML = `<span style="font-size:0.9rem; color:var(--text-sub);">漏唸單字: </span>` + 
+          fb.accuracy.missed.map(w => `<span class="badge-miss">${w}</span>`).join('');
+      } else {
+        missWordsList.innerHTML = '';
+      }
+
+      // 考官建議
+      const adviceList = document.getElementById('adviceList');
+      if(fb.actionableAdvice && fb.actionableAdvice.length > 0) {
+        adviceList.innerHTML = fb.actionableAdvice.map(a => `<li>${a}</li>`).join('');
+      } else {
+        adviceList.innerHTML = `<li>表現完美，請繼續保持目前的朗讀節奏。</li>`;
+      }
+      
+      // 自動捲動到報告區
+      document.getElementById('feedbackCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderLeaderboard(list) {
+      const tbody = document.getElementById('leaderboardBody');
+      if(!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">目前尚無排行數據</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(r => `
+        <tr>
+          <td><strong>${r.rank}</strong></td>
+          <td>${r.email}</td>
+          <td>${r.articleTitle}</td>
+          <td style="text-align:right; font-weight:bold; color:var(--primary-color);">${r.score}分</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderHistory(list) {
+      const tbody = document.getElementById('historyBody');
+      if(!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">您尚未進行任何朗讀特訓</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(r => `
+        <tr>
+          <td style="font-size:0.85rem; color:var(--text-sub);">${r.timestamp.split(' ')[0]}</td>
+          <td>${r.articleTitle}</td>
+          <td style="text-align:right; font-weight:bold;">${r.overallScore}分</td>
+        </tr>
+      `).join('');
+    }
+
+    // ==========================================
+    // UI 計時器與介面切換小工具
+    // ==========================================
+    function startTimer() {
+      secondsElapsed = 0;
+      document.getElementById('timer').innerText = "00:00";
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        if(secondsElapsed >= 60) stopRecording(); // 限時 60 秒強制定向停止
+        let mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        let secs = String(secondsElapsed % 60).padStart(2, '0');
+        document.getElementById('timer').innerText = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function switchTab(tabName) {
+      document.getElementById('tabLeader').classList.toggle('active', tabName === 'leader');
+      document.getElementById('tabHistory').classList.toggle('active', tabName === 'history');
+      document.getElementById('contentLeader').classList.toggle('active', tabName === 'leader');
+      document.getElementById('contentHistory').classList.toggle('active', tabName === 'history');
+    }
+
+    function showLoading(text) {
+      document.getElementById('loadingText').innerText = text;
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
